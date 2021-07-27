@@ -12,7 +12,7 @@ func main() {
 	config.LoadConfig()
 	println(config.StringConnection)
 
-	println("Rodando API")
+	println("Running API on port: ", config.Port)
 
 	r := router.Gerar()
 
