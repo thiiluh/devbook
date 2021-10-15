@@ -4,10 +4,9 @@ import (
 	"api/src/database"
 	"api/src/models"
 	"api/src/repositories"
+	"api/src/responses"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -22,27 +21,31 @@ func BuscarVariosUsuarios(w http.ResponseWriter, r *http.Request) {
 func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 	bodyRequest, erro := ioutil.ReadAll(r.Body)
 	if erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
 	}
 
 	var user models.User
 
 	if erro = json.Unmarshal(bodyRequest, &user); erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusBadRequest, erro)
+		return
 	}
 
 	db, erro := database.Connect()
 	if erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusInternalServerError, erro)
+		return
 	}
 
 	repository := repositories.NewRepositoryUser(db)
-	userID, erro := repository.Created(user)
+	_, erro = repository.Created(user)
 	if erro != nil {
-		log.Fatal(erro)
+		responses.Erro(w, http.StatusInternalServerError, erro)
+		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("ID inserted with success: %d", userID)))
+	responses.JSON(w, http.StatusCreated, user)
 }
 
 func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
